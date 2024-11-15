@@ -3,7 +3,7 @@ name: Auto Tag
 on:
   push:
     branches:
-      - master  # master 브랜치에 맞게 설정
+      - master  # 푸시 이벤트가 발생하는 브랜치
 
 jobs:
   tag:
@@ -39,9 +39,10 @@ jobs:
         with:
           script: |
             const newTag = "${{ steps.create_tag.outputs.NEW_TAG }}";
+            const { owner, repo } = context.repo;
             await github.rest.repos.createRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
+              owner: owner,
+              repo: repo,
               tag_name: newTag,
               name: `Release ${newTag}`,
               draft: false,
