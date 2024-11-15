@@ -27,7 +27,7 @@ class MainWindow(QMainWindow):
         self.update_label()  # 실행할 때 현재 시간 표시
 
         # 버튼 텍스트 업데이트
-        self.button = QPushButton("업데이트된 버튼 55", self)
+        self.button = QPushButton("업데이트된 버튼 55 업데이트했다 ㅋㅋㅋ", self)
         self.button.clicked.connect(self.update_label)
 
         layout = QVBoxLayout()

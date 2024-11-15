@@ -1,1 +1,14 @@
 pyinstaller --onedir --add-data "config/metadata.json;config" main.py
+
+1-1. 코드 변경 후 로컬에서 커밋
+git add .
+git commit -m "Update code with latest changes"
+
+1-2. 변경된 코드 푸시
+git push origin master
+
+2-1 코드와 함께 태그를 푸시하여 워크플로우를 실행
+git tag v1.0.x
+git push origin v1.0.x
+
+GitHub Actions가 자동으로 실행되어, 릴리스에 latest_release.zip 파일이 포함된 새 릴리스를 생성.
