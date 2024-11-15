@@ -3,7 +3,7 @@ name: Auto Tag
 on:
   push:
     branches:
-      - master  # 현재 브랜치에 맞게 설정 (main이 아닌 master로 설정)
+      - master  # master 브랜치에 맞게 설정
 
 jobs:
   tag:
@@ -21,7 +21,6 @@ jobs:
         id: get_tag
         run: |
           git fetch --tags
-          # 최신 태그 가져오기 (태그가 없을 경우 v1.0.0으로 시작)
           TAG=$(git describe --tags `git rev-list --tags --max-count=1` || echo "v1.0.0")
           echo "Latest tag is: $TAG"
           echo "::set-output name=TAG::$TAG"
@@ -29,7 +28,6 @@ jobs:
       - name: Create new tag
         id: create_tag
         run: |
-          # 최신 태그 버전을 증가시켜 새로운 태그 생성
           NEW_TAG=${{ steps.get_tag.outputs.TAG }}
           while git rev-parse "refs/tags/$NEW_TAG" >/dev/null 2>&1; do
             NEW_TAG=$(echo $NEW_TAG | awk -F. '{$NF++; print $0}' OFS=.)
@@ -44,13 +42,18 @@ jobs:
         with:
           script: |
             const newTag = process.env.NEW_TAG;
-            github.rest.repos.createRelease({
+            const token = process.env.GITHUB_TOKEN;
+            const octokit = new require('@octokit/rest')({
+              auth: token,
+            });
+            await octokit.repos.createRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
               tag_name: newTag,
               name: `Release ${newTag}`,
               draft: false,
-              prerelease: false
+              prerelease: false,
             });
         env:
           NEW_TAG: ${{ steps.create_tag.outputs.NEW_TAG }}
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
