@@ -47,34 +47,28 @@ jobs:
       # 6. 종속성 설치 (requests 포함)
       - name: Install dependencies
         run: |
-          pip install pyinstaller requests
+          pip install pyinstaller requests python-dotenv
 
       # 7. 실행 파일 빌드
       - name: Build executable
         run: |
           pyinstaller --onedir --add-data=config/version.json:config main.py -y
 
-      # 8. ZIP 파일 만들기
-      - name: Compress build folder
-        run: |
-          zip -r my_app_v${{ env.NEW_TAG }}.zip dist/
-
-      # 9. 릴리즈 생성 (파이썬 스크립트 사용) 및 업로드 URL 저장
+      # 8. 릴리즈 생성 (파이썬 스크립트 사용) 및 업로드 URL 저장
       - name: Create Release and Update version.json
         id: create_release
         env:
-          DURI_TOKEN: ${{ secrets.DURI_TOKEN }}
-          NEW_TAG: ${{ env.NEW_TAG }}
+          DURI_TOKEN: ${{ secrets.DURI_TOKEN }}  # GitHub Actions에 저장된 DURI_TOKEN 사용
         run: |
           python3 config/create_release.py
 
-      # 10. 빌드된 파일을 릴리즈에 업로드
+      # 9. 빌드된 파일을 릴리즈에 업로드
       - name: Upload Executable to Release
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.DURI_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: my_app_v${{ env.NEW_TAG }}.zip
-          asset_name: "my_app_v${{ env.NEW_TAG }}.zip"
+          asset_path: dist/main.zip  # dist 디렉토리에 생성된 실행 파일의 경로
+          asset_name: "my_app_v${{ env.NEW_TAG }}.zip"  # 파일 이름 지정
           asset_content_type: application/zip

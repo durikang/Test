@@ -1,7 +1,13 @@
 import requests
 import json
 import os
+from dotenv import load_dotenv
 
+# .env 파일 로드 (로컬 환경에서만 사용)
+load_dotenv()
+
+# GitHub Token 설정
+# GitHub Actions에서는 DURI_TOKEN을 사용하고, 로컬에서는 .env 파일에서 로드된 값을 사용합니다.
 GITHUB_TOKEN = os.getenv("DURI_TOKEN")
 username = 'durikang'
 repository = 'Test'
@@ -48,6 +54,8 @@ def create_release():
 
         print("Release created successfully!")
 
+    except requests.exceptions.RequestException as req_err:
+        print(f"릴리즈 생성 중 요청 오류가 발생했습니다: {req_err}")
     except Exception as e:
         print(f"릴리즈 생성 중 오류가 발생했습니다: {e}")
 
