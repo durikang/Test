@@ -52,7 +52,7 @@ jobs:
       # 7. 실행 파일 빌드
       - name: Build executable
         run: |
-          pyinstaller --onedir --add-data=config/metadata.json:config main.py -y
+          pyinstaller --onedir --add-data=config/version.json:config main.py -y
 
       # 8. Python 스크립트를 사용하여 릴리즈 생성 및 버전 업데이트
       - name: Create Release and Update version.json
