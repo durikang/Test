@@ -64,7 +64,7 @@ class UpdateWindow(QDialog):
                             self.latest_asset_url = asset["browser_download_url"]
 
                 # 최신 버전을 version.json 파일에 업데이트
-                from config.update_version_json import update_version_json
+                from config.create_release import update_version_json
                 update_version_json(latest_version)  # 최신 버전으로 버전 파일 업데이트
 
             else:
