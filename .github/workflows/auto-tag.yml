@@ -50,4 +50,3 @@ jobs:
             });
         env:
           NEW_TAG: ${{ steps.create_tag.outputs.NEW_TAG }}
-        ```
