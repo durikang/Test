@@ -3,11 +3,11 @@ name: Build and Release
 on:
   push:
     tags:
-      - 'v*'  # 태그가 'v'로 시작할 때 워크플로우가 실행되도록 설정
+      - 'v*'
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Check out repository
@@ -16,38 +16,21 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.9'  # 사용하는 Python 버전에 맞게 설정
+          python-version: '3.9'
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
           pip install pyinstaller
 
-      - name: Build executable with PyInstaller
+      - name: Build executable
         run: |
           pyinstaller --onedir --add-data "config/metadata.json;config" main.py
 
-      - name: Create ZIP file of executable
-        run: |
-          cd dist && zip -r latest_release.zip main
-
-      - name: Create GitHub Release
-        id: create_release
+      - name: Create a release
         uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.DURI_TOKEN }}
         with:
-          tag_name: ${{ github.ref_name }}  # 현재 태그 이름을 사용
+          tag_name: ${{ github.ref_name }}
           release_name: "Release ${{ github.ref_name }}"
           draft: false
           prerelease: false
-
-      - name: Upload Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.DURI_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: dist/latest_release.zip
-          asset_name: latest_release.zip
-          asset_content_type: application/zip
+          token: ${{ secrets.GITHUB_TOKEN }}
