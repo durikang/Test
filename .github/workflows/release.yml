@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*'  # 태그가 'v'로 시작할 때 실행
 
 jobs:
   build:
@@ -24,7 +24,8 @@ jobs:
 
       - name: Build executable
         run: |
-          pyinstaller --onedir --add-data "config/metadata.json;config" main.py
+          pyinstaller --onedir --add-data=config/metadata.json:config main.py  # 이 부분을 수정
+          
 
       - name: Create a release
         uses: actions/create-release@v1

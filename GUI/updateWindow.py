@@ -1,20 +1,19 @@
 import requests
 import os
 import sys
-import zipfile
+import zipfile  # 추가
 import subprocess
-from io import BytesIO
+import traceback
 from PyQt5.QtWidgets import QDialog, QLabel, QPushButton, QVBoxLayout, QMessageBox
 from config.config_manager import load_version, is_newer_version
-import traceback
 
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # GitHub 액세스 토큰 환경 변수
-
+GITHUB_TOKEN = os.getenv("DURI_TOKEN")
 
 class UpdateWindow(QDialog):
     def __init__(self):
         super().__init__()
         self.current_version = load_version()
+        self.latest_asset_url = None  # 최신 자산 파일 URL
 
         self.setWindowTitle(f"업데이트 확인 - {self.current_version}")
         self.setGeometry(150, 150, 300, 200)
@@ -43,8 +42,10 @@ class UpdateWindow(QDialog):
                 "User-Agent": "MyApp"
             }
             response = requests.get("https://api.github.com/repos/durikang/Test/releases/latest", headers=headers)
+            response.raise_for_status()
 
-            latest_version = response.json().get("tag_name", "N/A")
+            data = response.json()
+            latest_version = data.get("tag_name", "N/A")
 
             if latest_version == "N/A":
                 self.status_label.setText("최신 버전 정보를 불러올 수 없습니다.")
@@ -53,7 +54,12 @@ class UpdateWindow(QDialog):
             if is_newer_version(latest_version, self.current_version):
                 self.status_label.setText(f"새로운 버전 {latest_version}을 사용할 수 있습니다.")
                 self.update_button.setEnabled(True)
-                self.latest_asset_url = response.json()["assets"][0]["browser_download_url"]  # 최신 릴리스 exe 파일 URL 저장
+                # assets가 비어 있지 않은지 확인하고 다운로드 URL 가져오기
+                if data.get("assets"):
+                    self.latest_asset_url = data["assets"][0]["browser_download_url"]
+                else:
+                    self.status_label.setText("릴리스에 다운로드할 파일이 없습니다.")
+                    self.update_button.setEnabled(False)
             else:
                 self.status_label.setText("최신 버전입니다.")
         except Exception as e:
@@ -62,26 +68,28 @@ class UpdateWindow(QDialog):
 
     def perform_update(self):
         try:
-            # 최신 exe 파일 다운로드
+            if not self.latest_asset_url:
+                QMessageBox.warning(self, "오류", "다운로드할 파일 URL이 없습니다.")
+                return
+
+            # 최신 zip 파일 다운로드
             headers = {"Authorization": f"token {GITHUB_TOKEN}"}
             response = requests.get(self.latest_asset_url, headers=headers, stream=True)
             response.raise_for_status()
 
-            # 다운로드한 exe 파일을 임시 위치에 저장
-            with open("update_temp.exe", "wb") as f:
+            # 다운로드한 zip 파일을 임시 위치에 저장
+            with open("latest_release.zip", "wb") as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     f.write(chunk)
 
-            # 기존 exe 파일 위치 가져오기
-            current_exe_path = sys.argv[0]  # 현재 실행 중인 exe 경로
+            QMessageBox.information(self, "업데이트", "업데이트가 성공적으로 다운로드되었습니다! 압축을 해제하고 프로그램을 재시작합니다.")
 
-            # 다운로드한 파일을 기존 exe에 덮어쓰기
-            os.replace("update_temp.exe", current_exe_path)
-
-            QMessageBox.information(self, "업데이트", "업데이트가 성공적으로 완료되었습니다! 프로그램을 재시작합니다.")
+            # 압축 해제 및 실행 파일 대체
+            with zipfile.ZipFile("latest_release.zip", "r") as zip_ref:
+                zip_ref.extractall(os.path.dirname(sys.argv[0]))
 
             # 프로그램 재시작
-            subprocess.Popen([current_exe_path])  # 새로 업데이트된 exe 파일 실행
+            subprocess.Popen([sys.executable] + sys.argv)  # 새로 업데이트된 프로그램 재실행
             sys.exit(0)  # 기존 프로그램 종료
 
         except Exception as e:
