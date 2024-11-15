@@ -24,8 +24,7 @@ jobs:
 
       - name: Build executable
         run: |
-          pyinstaller --onedir --add-data=config/metadata.json:config main.py  # 이 부분을 수정
-          
+          pyinstaller --onedir --add-data=config/metadata.json:config main.py -y
 
       - name: Create a release
         uses: actions/create-release@v1
