@@ -29,11 +29,11 @@ jobs:
       - name: Create Release
         uses: actions/github-script@v4
         env:
-          GITHUB_TOKEN: ${{ secrets.DURI_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.DURI_TOKEN }}  # GitHub 토큰을 개인 액세스 토큰으로 사용
         with:
           script: |
             const newTag = process.env.GITHUB_REF.replace('refs/tags/', '');  // 태그 이름 가져오기
-            const { owner, repo } = context.repo;  // owner와 repo 가져오기
+            const { owner, repo } = github.context.repo;  // owner와 repo 가져오기
             console.log(`Creating release for ${owner}/${repo} with tag ${newTag}`);
             await github.rest.repos.createRelease({
               owner: owner,

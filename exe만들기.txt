@@ -5,8 +5,9 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 
 1-1. 코드 변경 후 로컬에서 커밋
 git add .
-git commit -m "Auto Tag test commit"
-git push origin master
+git commit -m "new commit"
+git push
+
 
 
 수동으로 릴리즈하기
