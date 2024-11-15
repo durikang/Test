@@ -33,11 +33,13 @@ def create_release():
         data = response.json()
         upload_url = data.get("upload_url")
 
-        # GitHub Actions 환경 변수로 설정 (로컬 환경에서는 파일로 저장)
+        # GitHub Actions 환경 변수로 설정 (GITHUB_ENV로 저장)
         if upload_url:
-            if os.getenv('GITHUB_ENV'):
-                with open(os.getenv('GITHUB_ENV'), 'a') as github_env:
+            github_env_path = os.getenv('GITHUB_ENV')
+            if github_env_path:
+                with open(github_env_path, 'a') as github_env:
                     github_env.write(f'upload_url={upload_url}\n')
+                print(f"::set-output name=upload_url::{upload_url}")
             else:
                 # 로컬 환경에서의 출력을 위해 처리
                 print(f"Upload URL: {upload_url}")
@@ -48,7 +50,6 @@ def create_release():
 
     except Exception as e:
         print(f"릴리즈 생성 중 오류가 발생했습니다: {e}")
-
 
 if __name__ == "__main__":
     create_release()

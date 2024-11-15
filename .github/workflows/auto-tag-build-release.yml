@@ -57,11 +57,11 @@ jobs:
       # 8. 릴리즈 생성 (파이썬 스크립트 사용) 및 업로드 URL 저장
       - name: Create Release and Update version.json
         id: create_release
-        run: |
-          python3 config/create_release.py
         env:
           DURI_TOKEN: ${{ secrets.DURI_TOKEN }}
           NEW_TAG: ${{ env.NEW_TAG }}
+        run: |
+          python3 config/create_release.py
 
       # 9. 빌드된 파일을 릴리즈에 업로드
       - name: Upload Executable to Release
@@ -70,6 +70,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.DURI_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: dist/main  # dist 디렉토리에 생성된 실행 파일의 경로
-          asset_name: "my_app_v${{ env.NEW_TAG }}.zip"  # 파일 이름 지정
+          asset_path: dist/main
+          asset_name: "my_app_v${{ env.NEW_TAG }}.zip"
           asset_content_type: application/zip
