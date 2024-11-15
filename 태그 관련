@@ -1,0 +1,19 @@
+1. 모든 로컬 태그 삭제:
+
+git tag -l | ForEach-Object { git tag -d $_ }
+
+2. 모든 원격 태그 삭제:
+
+git tag -l | ForEach-Object { git push origin ":refs/tags/$_" }
+
+3. 새로운 태그 생성 및 푸시:
+git tag v1.0.0
+git push origin v1.0.0
+
+원격 태그 확인
+git ls-remote --tags origin
+
+1. 특정 태그 수동 삭제
+v1.0.0 태그를 직접 삭제하려면 다음 명령어를 실행하세요:
+
+git push origin :refs/tags/v1.0.0
