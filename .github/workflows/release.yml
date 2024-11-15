@@ -29,7 +29,7 @@ jobs:
       - name: Create Release
         uses: actions/github-script@v4
         env:
-          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.DURI_TOKEN }}
         with:
           script: |
             const newTag = process.env.GITHUB_REF.replace('refs/tags/', '');  // 태그 이름 가져오기
