@@ -12,3 +12,29 @@ git tag v1.0.x
 git push origin v1.0.x
 
 GitHub Actions가 자동으로 실행되어, 릴리스에 latest_release.zip 파일이 포함된 새 릴리스를 생성.
+
+
+
+수동으로 릴리즈하기
+1.로컬에서 새로운 태그 생성 및 푸시:
+git tag v1.0.8
+git push origin v1.0.8
+
+2.GitHub에서 수동으로 릴리스 생성:
+GitHub 저장소의 Releases 탭으로 이동합니다.
+Draft a new release 버튼을 클릭하여 새 릴리스를 생성합니다.
+Tag version 필드에 v1.0.8과 같이 태그 이름을 입력합니다.
+Release title에 릴리스의 이름을 입력하고, 필요한 설명을 추가합니다.
+
+3.로컬에서 exe 파일 생성:
+pyinstaller --onedir --add-data "config/metadata.json;config" main.py
+
+4.exe 파일 압축
+cd dist
+Compress-Archive -Path .\main\* -DestinationPath .\latest_release.zip
+
+5.릴리스에 파일 업로드:
+
+GitHub의 Releases 페이지에서 새로 만든 릴리스의 상세 페이지로 이동합니다.
+Assets 섹션 아래에서 "Attach binaries by dropping them here or selecting them" 메시지가 보이는 곳에 latest_release.zip 파일을 드래그하거나 파일 선택을 통해 업로드합니다.
+업로드가 완료되면 "Publish release" 버튼을 눌러 릴리스를 완료합니다.
