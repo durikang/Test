@@ -9,18 +9,17 @@ jobs:
   tag_and_release:
     runs-on: ubuntu-latest
     steps:
+      # 리포지토리 체크아웃
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Setup Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.9'
-
-      - name: Install Requests
+      # Git 설정
+      - name: Setup Git
         run: |
-          pip install requests
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
 
+      # 최신 태그 가져오기
       - name: Get latest tag
         id: get_tag
         run: |
@@ -29,6 +28,7 @@ jobs:
           echo "Latest tag is: $TAG"
           echo "TAG=$TAG" >> $GITHUB_ENV
 
+      # 새 태그 생성
       - name: Create new tag
         id: create_tag
         run: |
@@ -38,6 +38,18 @@ jobs:
           git tag $NEW_TAG
           git push origin $NEW_TAG
 
+      # Python을 사용하여 릴리즈 생성
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      # requests 패키지 설치
+      - name: Install Requests
+        run: |
+          pip install requests
+
+      # Python을 사용하여 GitHub 릴리즈 생성
       - name: Create Release using Python
         env:
           GITHUB_TOKEN: ${{ secrets.DURI_TOKEN }}
@@ -46,11 +58,13 @@ jobs:
           import requests
           import os
 
+          # 환경 변수에서 토큰과 새 태그 가져오기
           ACCESS_TOKEN = os.getenv("GITHUB_TOKEN")
           new_tag = os.getenv("NEW_TAG")
           repo_owner = "durikang"
           repo_name = "Test"
 
+          # 릴리즈 생성 API 호출
           url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/releases"
           headers = {
               "Authorization": f"token {ACCESS_TOKEN}",
@@ -66,6 +80,7 @@ jobs:
 
           response = requests.post(url, headers=headers, json=release_data)
 
+          # 응답 결과 처리
           if response.status_code == 201:
               print("Release created successfully!")
           else:
