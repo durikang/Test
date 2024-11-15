@@ -8,7 +8,7 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         # 기본 윈도우 설정
-        self.setWindowTitle("Git Auto-Update Test - v1.0.1")  # 버전 표시 추가
+        self.setWindowTitle("Git Auto-Update Test - v1.0.2")  # 버전 표시 추가
         self.setGeometry(100, 100, 400, 200)  # 창 크기 변경
 
         # 메뉴바 설정
@@ -21,11 +21,11 @@ class MainWindow(QMainWindow):
         update_menu.addAction(update_action)
 
         # 레이아웃과 위젯 설정
-        self.label = QLabel("현재 시간 표시 (v1.0.1)", self)  # 라벨 초기 텍스트 변경
+        self.label = QLabel("현재 시간 표시 (v1.0.2)", self)  # 라벨 초기 텍스트 변경
         self.update_label()  # 실행할 때 현재 시간 표시
 
         # 버튼 텍스트 업데이트
-        self.button = QPushButton("업데이트된 버튼 1", self)
+        self.button = QPushButton("업데이트된 버튼 2", self)
         self.button.clicked.connect(self.update_label)  # 버튼 클릭 시 라벨 업데이트
 
         layout = QVBoxLayout()

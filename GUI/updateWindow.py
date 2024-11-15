@@ -13,18 +13,17 @@ class UpdateWindow(QDialog):
         self.setWindowTitle("업데이트 확인")
         self.setGeometry(150, 150, 300, 200)
 
-        # 현재 버전 가져오기
+        # 현재 버전 가져오기 - current_version을 초기화
         version_info = self.get_current_version()
-        current_version = version_info.get("version", "N/A")
+        self.current_version = version_info.get("version", "N/A")  # self.current_version 초기화
 
         # 라벨 설정
-        self.version_label = QLabel(f"현재 버전: {current_version}")
+        self.version_label = QLabel(f"현재 버전: {self.current_version}")
         self.status_label = QLabel("최신 버전입니다.")
 
         # 버튼 설정
         self.check_update_button = QPushButton("최신 버전 확인하기")
         self.check_update_button.clicked.connect(self.check_for_update)
-
 
         self.update_button = QPushButton("업데이트 하기")
         self.update_button.setEnabled(False)  # 최신 버전일 경우 비활성화
@@ -61,9 +60,8 @@ class UpdateWindow(QDialog):
             QMessageBox.warning(self, "오류", f"업데이트 확인 중 오류가 발생했습니다: {e}")
 
     def perform_update(self):
-        # 업데이트 로직 - 여기서는 예시로 메시지만 표시
+        # 업데이트 로직
         try:
-            # 업데이트 절차 예시 - 실제 업데이트를 위해서는 파일 다운로드와 적용이 필요함
             QMessageBox.information(self, "업데이트", "업데이트가 성공적으로 완료되었습니다!")
             self.status_label.setText("최신 버전으로 업데이트되었습니다.")
             self.update_button.setEnabled(False)
