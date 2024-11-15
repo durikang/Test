@@ -3,7 +3,7 @@ name: Auto Tag
 on:
   push:
     branches:
-      - master  # master 브랜치에 맞게 설정
+      - master  # master 브랜치에 맞게 설정df
 
 jobs:
   tag:
