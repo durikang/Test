@@ -1,45 +1,75 @@
-name: Build and Release
+name: Auto Tag and Release
 
 on:
   push:
-    tags:
-      - 'v*'  # 태그가 'v'로 시작할 때 실행
+    branches:
+      - master
 
 jobs:
-  build:
+  tag_and_release:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check out repository
+      - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Set up Python
+      - name: Setup Python
         uses: actions/setup-python@v2
         with:
           python-version: '3.9'
 
-      - name: Install dependencies
+      - name: Install Requests
         run: |
-          pip install pyinstaller
+          pip install requests
 
-      - name: Build executable
+      - name: Get latest tag
+        id: get_tag
         run: |
-          pyinstaller --onedir --add-data=config/metadata.json:config main.py -y
+          git fetch --tags
+          TAG=$(git describe --tags `git rev-list --tags --max-count=1` || echo "v1.0.0")
+          echo "Latest tag is: $TAG"
+          echo "TAG=$TAG" >> $GITHUB_ENV
 
-      - name: Create Release
-        uses: actions/github-script@v4
+      - name: Create new tag
+        id: create_tag
+        run: |
+          NEW_TAG=$(echo ${{ env.TAG }} | awk -F. '{$NF++; print $0}' OFS=.)
+          echo "New tag is: $NEW_TAG"
+          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+          git tag $NEW_TAG
+          git push origin $NEW_TAG
+
+      - name: Create Release using Python
         env:
-          GITHUB_TOKEN: ${{ secrets.DURI_TOKEN }}  # GitHub 토큰을 개인 액세스 토큰으로 사용
-        with:
-          script: |
-            const newTag = process.env.GITHUB_REF.replace('refs/tags/', '');  // 태그 이름 가져오기
-            const { owner, repo } = github.context.repo;  // owner와 repo 가져오기
-            console.log(`Creating release for ${owner}/${repo} with tag ${newTag}`);
-            await github.rest.repos.createRelease({
-              owner: owner,
-              repo: repo,
-              tag_name: newTag,
-              name: `Release ${newTag}`,
-              draft: false,
-              prerelease: false
-            });
+          GITHUB_TOKEN: ${{ secrets.DURI_TOKEN }}
+        run: |
+          python - <<EOF
+          import requests
+          import os
+
+          ACCESS_TOKEN = os.getenv("GITHUB_TOKEN")
+          new_tag = os.getenv("NEW_TAG")
+          repo_owner = "durikang"
+          repo_name = "Test"
+
+          url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/releases"
+          headers = {
+              "Authorization": f"token {ACCESS_TOKEN}",
+              "Accept": "application/vnd.github.v3+json"
+          }
+          release_data = {
+              "tag_name": new_tag,
+              "name": f"Release {new_tag}",
+              "body": f"This is the release for {new_tag}",
+              "draft": False,
+              "prerelease": False
+          }
+
+          response = requests.post(url, headers=headers, json=release_data)
+
+          if response.status_code == 201:
+              print("Release created successfully!")
+          else:
+              print("Failed to create release")
+              print("Status Code:", response.status_code)
+              print("Response:", response.text)
+          EOF
