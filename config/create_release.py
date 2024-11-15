@@ -30,7 +30,12 @@ def create_release():
         # 릴리즈 생성이 성공하면 출력
         data = response.json()
         upload_url = data.get("upload_url")
-        print(f"::set-output name=upload_url::{upload_url}")
+
+        # upload_url을 GitHub Actions 환경 변수로 설정
+        if upload_url:
+            print(f"::set-output name=upload_url::{upload_url}")
+        else:
+            print("업로드 URL을 찾을 수 없습니다.")
 
         print("Release created successfully!")
 
