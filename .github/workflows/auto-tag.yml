@@ -30,8 +30,12 @@ jobs:
         id: create_tag
         run: |
           # 최신 태그 버전을 증가시켜 새로운 태그 생성
-          NEW_TAG=$(echo ${{ steps.get_tag.outputs.TAG }} | awk -F. '{$NF++; print $0}' OFS=.)
+          NEW_TAG=${{ steps.get_tag.outputs.TAG }}
+          while git rev-parse "refs/tags/$NEW_TAG" >/dev/null 2>&1; do
+            NEW_TAG=$(echo $NEW_TAG | awk -F. '{$NF++; print $0}' OFS=.)
+          done
           echo "New tag is: $NEW_TAG"
+          echo "::set-output name=NEW_TAG::$NEW_TAG"
           git tag $NEW_TAG
           git push origin $NEW_TAG
 
