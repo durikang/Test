@@ -1,4 +1,4 @@
-# config_manager.py
+# config/config_manager.py
 import json
 import os
 import sys

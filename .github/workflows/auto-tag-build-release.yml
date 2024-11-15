@@ -54,8 +54,9 @@ jobs:
         run: |
           pyinstaller --onedir --add-data=config/version.json:config main.py -y
 
-      # 8. 릴리즈 생성 (파이썬 스크립트 사용)
+      # 8. 릴리즈 생성 (파이썬 스크립트 사용) 및 업로드 URL 저장
       - name: Create Release and Update version.json
+        id: create_release
         run: |
           python3 config/create_release.py
 
@@ -63,7 +64,7 @@ jobs:
       - name: Upload Executable to Release
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.DURI_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: dist/main

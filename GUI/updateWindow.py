@@ -1,3 +1,4 @@
+# GUI/updateWindow.py
 import requests
 import os
 import sys
@@ -8,7 +9,7 @@ import json
 from PyQt5.QtWidgets import QDialog, QLabel, QPushButton, QVBoxLayout, QMessageBox
 from config.config_manager import load_version, is_newer_version
 
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # 환경 변수로 GitHub 토큰을 가져옴
+GITHUB_TOKEN = os.getenv("DURI_TOKEN")  # 환경 변수로 GitHub 토큰을 가져옴
 
 
 class UpdateWindow(QDialog):
