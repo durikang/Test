@@ -1,5 +1,8 @@
 pyinstaller --onedir --add-data "config/metadata.json;config" main.py
 
+$OutputEncoding = [System.Text.Encoding]::UTF8
+파워셀 utf-8로 강제설정
+
 1-1. 코드 변경 후 로컬에서 커밋
 git add .
 git commit -m "Update code with latest changes"
