@@ -1,0 +1,9 @@
+project/
+│
+├── main.py               # 실행 파일
+├── GUI/
+│   ├── mainWindow.py     # 메인 윈도우 GUI 코드
+│   └── updateWindow.py   # 업데이트 창 GUI 코드
+└── config/
+    └── config_manager.py
+    └── metadata.json     # 버전 정보 파일

@@ -1,25 +1,20 @@
 # GUI/updateWindow.py
-import json
-import os
 import requests
 from PyQt5.QtWidgets import QDialog, QLabel, QPushButton, QVBoxLayout, QMessageBox
-
+from config.config_manager import load_version  # load_version 함수 불러오기
 
 class UpdateWindow(QDialog):
     def __init__(self):
         super().__init__()
+        self.current_version = load_version()  # JSON에서 불러온 버전 사용
 
         # 업데이트 창 설정
-        self.setWindowTitle("업데이트 확인")
+        self.setWindowTitle(f"업데이트 확인 - {self.current_version}")
         self.setGeometry(150, 150, 300, 200)
-
-        # 현재 버전 가져오기 - current_version을 초기화
-        version_info = self.get_current_version()
-        self.current_version = version_info.get("version", "N/A")  # self.current_version 초기화
 
         # 라벨 설정
         self.version_label = QLabel(f"현재 버전: {self.current_version}")
-        self.status_label = QLabel("최신 버전입니다.")
+        self.status_label = QLabel("버전을 확인하세요")
 
         # 버튼 설정
         self.check_update_button = QPushButton("최신 버전 확인하기")
@@ -36,14 +31,6 @@ class UpdateWindow(QDialog):
         layout.addWidget(self.check_update_button)
         layout.addWidget(self.update_button)
         self.setLayout(layout)
-
-    def get_current_version(self):
-        # metadata.json 파일에서 현재 버전 정보를 로드
-        config_path = os.path.join("config", "metadata.json")
-        if os.path.exists(config_path):
-            with open(config_path, "r") as file:
-                return json.load(file)
-        return {}
 
     def check_for_update(self):
         # GitHub API에서 최신 릴리스 버전을 확인
