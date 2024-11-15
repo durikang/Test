@@ -33,4 +33,3 @@ jobs:
           release_name: "Release ${{ github.ref_name }}"
           draft: false
           prerelease: false
-          token: ${{ secrets.GITHUB_TOKEN }}
