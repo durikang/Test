@@ -7,9 +7,9 @@ import sys
 # JSON 파일에서 버전 정보 불러오기
 def load_version():
     if getattr(sys, 'frozen', False):
-        config_path = os.path.join(sys._MEIPASS, "config", "metadata.json")
+        config_path = os.path.join(sys._MEIPASS, "config", "version.json")
     else:
-        config_path = os.path.join("config", "metadata.json")
+        config_path = os.path.join("config", "version.json")
 
     if os.path.exists(config_path):
         with open(config_path, "r") as file:

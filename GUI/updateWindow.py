@@ -1,13 +1,15 @@
 import requests
 import os
 import sys
-import zipfile  # 추가
+import zipfile
 import subprocess
 import traceback
+import json
 from PyQt5.QtWidgets import QDialog, QLabel, QPushButton, QVBoxLayout, QMessageBox
 from config.config_manager import load_version, is_newer_version
 
-GITHUB_TOKEN = os.getenv("DURI_TOKEN")
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # 환경 변수로 GitHub 토큰을 가져옴
+
 
 class UpdateWindow(QDialog):
     def __init__(self):
@@ -54,12 +56,17 @@ class UpdateWindow(QDialog):
             if is_newer_version(latest_version, self.current_version):
                 self.status_label.setText(f"새로운 버전 {latest_version}을 사용할 수 있습니다.")
                 self.update_button.setEnabled(True)
+
                 # assets가 비어 있지 않은지 확인하고 다운로드 URL 가져오기
                 if data.get("assets"):
-                    self.latest_asset_url = data["assets"][0]["browser_download_url"]
-                else:
-                    self.status_label.setText("릴리스에 다운로드할 파일이 없습니다.")
-                    self.update_button.setEnabled(False)
+                    for asset in data["assets"]:
+                        if asset["name"].endswith(".zip"):  # 필요한 파일 형식 선택
+                            self.latest_asset_url = asset["browser_download_url"]
+
+                # 최신 버전을 version.json 파일에 업데이트
+                from config.update_version_json import update_version_json
+                update_version_json(latest_version)  # 최신 버전으로 버전 파일 업데이트
+
             else:
                 self.status_label.setText("최신 버전입니다.")
         except Exception as e:

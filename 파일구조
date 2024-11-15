@@ -6,4 +6,6 @@ project/
 │   └── updateWindow.py   # 업데이트 창 GUI 코드
 └── config/
     └── config_manager.py
-    └── metadata.json     # 버전 정보 파일
+    └── update_version_json.py     # 버전 정보 파일
+    └── version.json     # 버전 정보 파일
+└── .github/workflows/release.yml

@@ -1,4 +1,4 @@
-pyinstaller --onedir --add-data "config/metadata.json;config" main.py
+pyinstaller --onedir --add-data "config/version.json;config" main.py
 
 $OutputEncoding = [System.Text.Encoding]::UTF8
 파워셀 utf-8로 강제설정
