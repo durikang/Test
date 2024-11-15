@@ -28,10 +28,12 @@ jobs:
 
       - name: Create Release
         uses: actions/github-script@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
           script: |
-            const newTag = process.env.GITHUB_REF.replace('refs/tags/', '');  // 환경 변수에서 태그 이름 가져오기
-            const { owner, repo } = context.repo;  // context에서 owner와 repo 가져오기
+            const newTag = process.env.GITHUB_REF.replace('refs/tags/', '');  // 태그 이름 가져오기
+            const { owner, repo } = context.repo;  // owner와 repo 가져오기
             console.log(`Creating release for ${owner}/${repo} with tag ${newTag}`);
             await github.rest.repos.createRelease({
               owner: owner,
@@ -41,5 +43,3 @@ jobs:
               draft: false,
               prerelease: false
             });
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
