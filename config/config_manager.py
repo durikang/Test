@@ -6,17 +6,26 @@ import sys
 
 # JSON 파일에서 버전 정보 불러오기
 def load_version():
-    # PyInstaller로 빌드된 환경인지 확인하여 경로 설정
     if getattr(sys, 'frozen', False):
-        # 빌드된 환경에서는 sys._MEIPASS 경로 사용
         config_path = os.path.join(sys._MEIPASS, "config", "metadata.json")
     else:
-        # 개발 환경에서는 현재 디렉토리를 기준으로 경로 설정
         config_path = os.path.join("config", "metadata.json")
 
-    # 파일이 존재하면 JSON 데이터 읽어오기
     if os.path.exists(config_path):
         with open(config_path, "r") as file:
             data = json.load(file)
             return data.get("version", "N/A")
     return "N/A"
+
+
+# config_manager.py
+def is_newer_version(latest_version, current_version):
+    def version_tuple(v):
+        return tuple(map(int, (v.lstrip("v").split("."))))
+
+    # 버전 값이 'N/A'이거나 비어 있으면 False 반환
+    if latest_version == "N/A" or current_version == "N/A":
+        print("[ERROR] 버전 정보가 올바르지 않아 비교할 수 없습니다.")
+        return False
+
+    return version_tuple(latest_version) > version_tuple(current_version)
