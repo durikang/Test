@@ -33,9 +33,14 @@ def create_release():
         data = response.json()
         upload_url = data.get("upload_url")
 
-        # upload_url을 GitHub Actions 환경 변수로 설정
+        # GitHub Actions 환경 변수로 설정 (로컬 환경에서는 파일로 저장)
         if upload_url:
-            print(f"::set-output name=upload_url::{upload_url}")
+            if os.getenv('GITHUB_ENV'):
+                with open(os.getenv('GITHUB_ENV'), 'a') as github_env:
+                    github_env.write(f'upload_url={upload_url}\n')
+            else:
+                # 로컬 환경에서의 출력을 위해 처리
+                print(f"Upload URL: {upload_url}")
         else:
             print("업로드 URL을 찾을 수 없습니다.")
 
