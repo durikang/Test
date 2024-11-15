@@ -33,3 +33,23 @@ jobs:
           echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
           git tag $NEW_TAG
           git push origin $NEW_TAG
+
+      # 릴리즈 생성 단계 추가
+      - name: Create Release
+        uses: actions/github-script@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.DURI_TOKEN }}
+        with:
+          script: |
+            const newTag = process.env.NEW_TAG;
+            const { owner, repo } = context.repo;
+            console.log(`Creating release for ${owner}/${repo} with tag ${newTag}`);
+            await github.rest.repos.createRelease({
+              owner: owner,
+              repo: repo,
+              tag_name: newTag,
+              name: `Release ${newTag}`,
+              body: `Release description for ${newTag}`,
+              draft: false,
+              prerelease: false
+            });
