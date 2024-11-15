@@ -38,7 +38,7 @@ jobs:
         uses: actions/github-script@v4
         with:
           script: |
-            const newTag = process.env.NEW_TAG;  // 환경 변수에서 NEW_TAG 가져오기
+            const newTag = process.env.NEW_TAG;  
             const { owner, repo } = context.repo;
             console.log(`Creating release for ${owner}/${repo} with tag ${newTag}`);
             await github.rest.repos.createRelease({
