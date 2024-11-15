@@ -26,12 +26,20 @@ jobs:
         run: |
           pyinstaller --onedir --add-data=config/metadata.json:config main.py -y
 
-      - name: Create a release
-        uses: actions/create-release@v1
-        with:
-          tag_name: ${{ github.ref_name }}
-          release_name: "Release ${{ github.ref_name }}"
-          draft: false
-          prerelease: false
+      - name: Create Release
+        uses: actions/github-script@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          script: |
+            const newTag = process.env.GITHUB_REF.replace('refs/tags/', '');  
+            const { owner, repo } = context.repo; 
+            console.log(`Creating release for ${owner}/${repo} with tag ${newTag}`);
+            await github.rest.repos.createRelease({
+              owner: owner,
+              repo: repo,
+              tag_name: newTag,
+              name: `Release ${newTag}`,
+              draft: false,
+              prerelease: false
+            });
