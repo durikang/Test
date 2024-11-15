@@ -39,7 +39,7 @@ jobs:
         with:
           script: |
             const newTag = "${{ steps.create_tag.outputs.NEW_TAG }}";
-            const { owner, repo } = context.repo;
+            const { owner, repo } = context.repo;  # context 객체에서 owner/repo 가져오기
             console.log(`Creating release for ${owner}/${repo} with tag ${newTag}`);
             await github.rest.repos.createRelease({
               owner: owner,
