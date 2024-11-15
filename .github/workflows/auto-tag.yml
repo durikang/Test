@@ -1,15 +1,15 @@
-name: Auto Tag
+name: Auto Tag and Release
 
 on:
   push:
     branches:
-      - master  # 푸시 이벤트가 발생하는 브랜치
+      - master
 
 jobs:
-  tag:
+  tag_and_release:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v2
 
       - name: Setup Git
@@ -40,6 +40,7 @@ jobs:
           script: |
             const newTag = "${{ steps.create_tag.outputs.NEW_TAG }}";
             const { owner, repo } = context.repo;
+            console.log(`Creating release for ${owner}/${repo} with tag ${newTag}`);
             await github.rest.repos.createRelease({
               owner: owner,
               repo: repo,
