@@ -1,4 +1,3 @@
-# config/create_release.py
 import requests
 import json
 import os
@@ -7,6 +6,9 @@ GITHUB_TOKEN = os.getenv("DURI_TOKEN")
 username = 'durikang'
 repository = 'Test'
 
+if not GITHUB_TOKEN:
+    print("[ERROR] GitHub 토큰이 설정되지 않았습니다. 환경 변수 'DURI_TOKEN'을 확인하세요.")
+    exit(1)
 
 def create_release():
     try:
