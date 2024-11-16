@@ -89,15 +89,15 @@ class UpdateWindow(QDialog):
                 zip_ref.extractall(temp_extract_path)
 
             # 압축 해제된 메인 폴더 위치
-            extracted_main_path = os.path.join(temp_extract_path, "main")
+            extracted_main_path = os.path.join(temp_extract_path, "duri")
             if not os.path.exists(extracted_main_path):
-                QMessageBox.critical(self, "오류", "압축 파일에서 'main' 폴더를 찾을 수 없습니다.")
+                QMessageBox.critical(self, "오류", "압축 파일에서 'duri' 폴더를 찾을 수 없습니다.")
                 return
 
-            # 기존 main 폴더 내부 파일 교체 (구버전 유지)
-            target_path = os.path.join(os.getcwd(), "main")
+            # 기존 duri 폴더 내부 파일 교체 (구버전 유지)
+            target_path = os.path.join(os.getcwd(), "duri")
             if os.path.exists(target_path):
-                # 기존 main 폴더 내부 파일 삭제 및 교체
+                # 기존 duri 폴더 내부 파일 삭제 및 교체
                 for item in os.listdir(extracted_main_path):
                     source_item = os.path.join(extracted_main_path, item)
                     target_item = os.path.join(target_path, item)

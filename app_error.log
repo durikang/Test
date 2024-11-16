@@ -1,0 +1,2 @@
+2024-11-17 08:33:11,465 - DEBUG - Starting new HTTPS connection (1): api.github.com:443
+2024-11-17 08:33:11,743 - DEBUG - https://api.github.com:443 "GET /repos/durikang/Test/releases/latest HTTP/11" 200 757
