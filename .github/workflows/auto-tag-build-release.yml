@@ -47,9 +47,16 @@ jobs:
       # 6. 종속성 설치 (requests 포함)
       - name: Install dependencies
         run: |
-          pip install requests
+          pip install requests pyinstaller
 
-      # 7. 릴리즈 생성 (파이썬 스크립트 사용) 및 업로드 URL 저장
+      # 7. 빌드 및 압축 파일 생성 (PyInstaller 사용)
+      - name: Build Executable with PyInstaller
+        run: |
+          pyinstaller main.py --onefile --distpath dist
+          cd dist
+          zip main.zip main
+
+      # 8. 릴리즈 생성 (파이썬 스크립트 사용) 및 업로드 URL 저장
       - name: Create Release and Update version.json
         id: create_release
         env:
@@ -62,7 +69,7 @@ jobs:
           upload_url=$(cat release_output.txt | grep "Upload URL:" | awk '{print $3}')
           echo "UPLOAD_URL=$upload_url" >> $GITHUB_ENV
 
-      # 8. 빌드된 파일을 릴리즈에 업로드
+      # 9. 빌드된 파일을 릴리즈에 업로드
       - name: Upload Executable to Release
         uses: actions/upload-release-asset@v1
         env:
