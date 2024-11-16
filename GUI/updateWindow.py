@@ -1,8 +1,9 @@
-import requests  # 누락된 requests 모듈을 임포트합니다.
+import requests
 import sys
 import zipfile
 import subprocess
 import traceback
+import shutil
 import os
 from PyQt5.QtWidgets import QDialog, QLabel, QPushButton, QVBoxLayout, QMessageBox
 from config.config_manager import load_version, is_newer_version
@@ -11,7 +12,7 @@ class UpdateWindow(QDialog):
     def __init__(self):
         super().__init__()
         self.current_version = load_version()
-        self.latest_asset_url = None  # 최신 자산 파일 URL
+        self.latest_asset_url = None
 
         self.setWindowTitle(f"업데이트 확인 - {self.current_version}")
         self.setGeometry(150, 150, 300, 200)
@@ -78,38 +79,30 @@ class UpdateWindow(QDialog):
 
             QMessageBox.information(self, "업데이트", "업데이트가 성공적으로 다운로드되었습니다! 압축을 해제하고 프로그램을 재시작합니다.")
 
-            # 압축 해제 및 배치 파일 작성
+            # 압축 해제 및 기존 폴더 교체
             with zipfile.ZipFile(zip_file_path, "r") as zip_ref:
                 temp_extract_path = os.path.join(os.getcwd(), "temp_update")
                 if not os.path.exists(temp_extract_path):
                     os.makedirs(temp_extract_path)
                 zip_ref.extractall(temp_extract_path)
 
-                # 압축 해제된 파일이 예상되는 위치에 있는지 확인
-                extracted_main_file_path = os.path.join(temp_extract_path, "main.exe")
+                # 기존 폴더 교체
+                target_path = os.path.join(os.getcwd(), "main")
+                if os.path.exists(target_path):
+                    shutil.rmtree(target_path)
 
-                # dist/main.exe로 압축된 파일을 찾기 위한 수정된 경로
-                if not os.path.exists(extracted_main_file_path):
-                    # 압축 파일 내에 dist 폴더가 있다면 dist/main.exe로 해제되었을 가능성 체크
-                    extracted_main_file_path = os.path.join(temp_extract_path, "dist", "main.exe")
+                shutil.move(os.path.join(temp_extract_path, "main"), target_path)
 
-                if not os.path.exists(extracted_main_file_path):
-                    QMessageBox.critical(self, "오류", "업데이트 파일(main.exe)을 찾을 수 없습니다. 압축 파일 내 위치를 확인하세요.")
-                    return
+            # 배치 파일 생성 및 실행 후 프로그램 재시작
+            bat_file_path = os.path.join(os.getcwd(), "update.bat")
+            with open(bat_file_path, "w") as bat_file:
+                bat_file.write(f"""
+                @echo off
+                timeout /t 1 /nobreak >nul
+                start "" "{os.path.join(target_path, 'main.exe')}"
+                del "%~f0"
+                """)
 
-                # 배치 파일 생성
-                bat_file_path = os.path.join(os.getcwd(), "update.bat")
-                with open(bat_file_path, "w") as bat_file:
-                    bat_file.write(f"""
-                    @echo off
-                    timeout /t 1 /nobreak >nul
-                    del "main.exe"
-                    move "{extracted_main_file_path}" "main.exe"
-                    start "" "main.exe"
-                    del "%~f0"
-                    """)
-
-            # 배치 파일 실행
             subprocess.Popen(bat_file_path, shell=True)
             sys.exit(0)
 
