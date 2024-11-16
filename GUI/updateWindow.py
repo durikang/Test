@@ -117,20 +117,12 @@ class UpdateWindow(QDialog):
             # zip 파일 삭제
             os.remove(zip_file_path)
 
-            # 배치 파일 생성 및 실행 후 프로그램 재시작
-            bat_file_path = os.path.join(os.getcwd(), "update.bat")
-            with open(bat_file_path, "w") as bat_file:
-                bat_file.write(f"""
-                @echo off
-                timeout /t 2 /nobreak >nul
-                start "" "{os.path.join(target_path, 'main.exe')}"
-                del "%~f0"
-                """)
-
-            # 배치 파일을 실행하고 프로그램 종료
-            subprocess.Popen(bat_file_path, shell=True)
-            os._exit(0)
+            # 프로그램 재시작 (os.execv 사용)
+            python_executable = sys.executable
+            program_path = os.path.join(target_path, "main.exe")
+            os.execv(python_executable, [python_executable, program_path])
 
         except Exception as e:
             traceback.print_exc()
             QMessageBox.critical(self, "오류", f"업데이트 중 오류가 발생했습니다: {e}")
+
