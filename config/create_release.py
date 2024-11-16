@@ -1,13 +1,8 @@
 import requests
 import json
 import os
-from dotenv import load_dotenv
 
-# .env 파일 로드 (로컬 환경에서만 사용)
-load_dotenv()
-
-# GitHub Token 설정
-# GitHub Actions에서는 DURI_TOKEN을 사용하고, 로컬에서는 .env 파일에서 로드된 값을 사용합니다.
+# GitHub Token 설정 (환경 변수로부터 가져오기)
 GITHUB_TOKEN = os.getenv("DURI_TOKEN")
 username = 'durikang'
 repository = 'Test'

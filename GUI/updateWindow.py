@@ -7,11 +7,8 @@ import traceback
 import json
 from PyQt5.QtWidgets import QDialog, QLabel, QPushButton, QVBoxLayout, QMessageBox
 from config.config_manager import load_version, is_newer_version
-from dotenv import load_dotenv  # dotenv 불러오기
 
-# .env 파일을 로드하여 환경 변수를 설정합니다.
-load_dotenv()  # 이 코드를 실행하면 .env 파일에 있는 환경 변수가 시스템 환경 변수로 설정됩니다.
-
+# GitHub Token을 환경 변수에서 가져오기
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # 환경 변수로부터 GitHub 토큰을 가져옴
 
 class UpdateWindow(QDialog):
