@@ -7,7 +7,7 @@ on:
 
 jobs:
   tag_build_release:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       # 1. 리포지토리 체크아웃
       - name: Checkout repository
@@ -65,12 +65,12 @@ jobs:
       - name: Build Executable with PyInstaller
         run: |
           # PyInstaller를 사용해 실행 파일 및 필요한 파일 생성
-          pyinstaller main.py --onedir --add-data="config/version.json:config" --distpath dist
+          pyinstaller main.py --onedir --add-data "config/version.json;config" --distpath dist
           # dist 폴더 내부에 있는 빌드된 실행 파일의 이름을 명확히 지정
-          mv dist/main/main dist/main/main.exe
+          mv dist/main/main.exe dist/main/main.exe
           # dist 폴더를 ZIP 파일로 압축
           cd dist
-          zip -r ../main_update.zip main
+          powershell Compress-Archive -Path main -DestinationPath ../main_update.zip
 
       # 8. 릴리즈 생성 (파이썬 스크립트 사용) 및 업로드 URL 저장
       - name: Create Release and Update version.json
@@ -79,10 +79,10 @@ jobs:
           DURI_TOKEN: ${{ secrets.DURI_TOKEN }}  # GitHub Actions에 저장된 DURI_TOKEN 사용
           NEW_TAG: ${{ env.NEW_TAG }}
         run: |
-          python3 config/create_release.py > release_output.txt
+          python config/create_release.py > release_output.txt
           cat release_output.txt
           # 릴리즈 생성 후 결과를 GitHub Actions에 반영
-          upload_url=$(cat release_output.txt | grep "Upload URL:" | awk '{print $3}')
+          upload_url=$(cat release_output.txt | findstr "Upload URL" | awk '{print $3}')
           echo "UPLOAD_URL=$upload_url" >> $GITHUB_ENV
 
       # 9. 빌드된 파일을 릴리즈에 업로드
