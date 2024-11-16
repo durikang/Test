@@ -52,9 +52,10 @@ jobs:
       # 7. 빌드 및 압축 파일 생성 (PyInstaller 사용)
       - name: Build Executable with PyInstaller
         run: |
+          # PyInstaller를 사용해 실행 파일 생성
           pyinstaller main.py --onefile --distpath dist
-          cd dist
-          zip main.zip main
+          # 압축 파일 생성
+          zip dist/main.zip dist/main*
 
       # 8. 릴리즈 생성 (파이썬 스크립트 사용) 및 업로드 URL 저장
       - name: Create Release and Update version.json

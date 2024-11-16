@@ -1,4 +1,4 @@
-import requests
+import requests  # 누락된 requests 모듈을 임포트합니다.
 import sys
 import zipfile
 import subprocess
@@ -6,9 +6,6 @@ import traceback
 import os
 from PyQt5.QtWidgets import QDialog, QLabel, QPushButton, QVBoxLayout, QMessageBox
 from config.config_manager import load_version, is_newer_version
-
-# GitHub Token을 직접 사용하지 않습니다.
-# GitHub Actions에서 시크릿으로 토큰을 주입하여 실행하는 방식을 사용
 
 class UpdateWindow(QDialog):
     def __init__(self):
@@ -38,10 +35,7 @@ class UpdateWindow(QDialog):
 
     def check_for_update(self):
         try:
-            # GitHub Token 없이도 최신 릴리즈 확인 (비공개 저장소에서는 안될 수 있음)
-            headers = {
-                "User-Agent": "MyApp"
-            }
+            headers = {"User-Agent": "MyApp"}
             response = requests.get("https://api.github.com/repos/durikang/Test/releases/latest", headers=headers)
             response.raise_for_status()
 
@@ -56,15 +50,10 @@ class UpdateWindow(QDialog):
                 self.status_label.setText(f"새로운 버전 {latest_version}을 사용할 수 있습니다.")
                 self.update_button.setEnabled(True)
 
-                # assets가 비어 있지 않은지 확인하고 다운로드 URL 가져오기
                 if data.get("assets"):
                     for asset in data["assets"]:
-                        if asset["name"].endswith(".zip"):  # 필요한 파일 형식 선택
+                        if asset["name"].endswith(".zip"):
                             self.latest_asset_url = asset["browser_download_url"]
-
-                # 최신 버전을 version.json 파일에 업데이트
-                from config.create_release import create_release
-                create_release(latest_version)  # 최신 버전으로 버전 파일 업데이트
 
             else:
                 self.status_label.setText("최신 버전입니다.")
@@ -78,24 +67,45 @@ class UpdateWindow(QDialog):
                 QMessageBox.warning(self, "오류", "다운로드할 파일 URL이 없습니다.")
                 return
 
-            # 최신 zip 파일 다운로드 (토큰 없이 공개 릴리즈를 다운로드)
+            # 최신 zip 파일 다운로드
+            zip_file_path = os.path.join(os.getcwd(), "latest_release.zip")
             response = requests.get(self.latest_asset_url, stream=True)
             response.raise_for_status()
 
-            # 다운로드한 zip 파일을 임시 위치에 저장
-            with open("latest_release.zip", "wb") as f:
+            with open(zip_file_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     f.write(chunk)
 
             QMessageBox.information(self, "업데이트", "업데이트가 성공적으로 다운로드되었습니다! 압축을 해제하고 프로그램을 재시작합니다.")
 
-            # 압축 해제 및 실행 파일 대체
-            with zipfile.ZipFile("latest_release.zip", "r") as zip_ref:
-                zip_ref.extractall(os.path.dirname(sys.argv[0]))
+            # 압축 해제 및 배치 파일 작성
+            with zipfile.ZipFile(zip_file_path, "r") as zip_ref:
+                temp_extract_path = os.path.join(os.getcwd(), "temp_update")
+                if not os.path.exists(temp_extract_path):
+                    os.makedirs(temp_extract_path)
+                zip_ref.extractall(temp_extract_path)
 
-            # 프로그램 재시작
-            subprocess.Popen([sys.executable] + sys.argv)  # 새로 업데이트된 프로그램 재실행
-            sys.exit(0)  # 기존 프로그램 종료
+                extracted_main_file_path = os.path.join(temp_extract_path, "main.exe")
+
+                if not os.path.exists(extracted_main_file_path):
+                    QMessageBox.critical(self, "오류", "업데이트 파일(main.exe)을 찾을 수 없습니다. 압축 파일 내 위치를 확인하세요.")
+                    return
+
+                # 배치 파일 생성
+                bat_file_path = os.path.join(os.getcwd(), "update.bat")
+                with open(bat_file_path, "w") as bat_file:
+                    bat_file.write(f"""
+                    @echo off
+                    timeout /t 1 /nobreak >nul
+                    del "main.exe"
+                    move "{extracted_main_file_path}" "main.exe"
+                    start "" "main.exe"
+                    del "%~f0"
+                    """)
+
+            # 배치 파일 실행
+            subprocess.Popen(bat_file_path, shell=True)
+            sys.exit(0)
 
         except Exception as e:
             traceback.print_exc()
