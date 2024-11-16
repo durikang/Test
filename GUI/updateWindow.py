@@ -1,15 +1,14 @@
 import requests
-import os
 import sys
 import zipfile
 import subprocess
 import traceback
-import json
+import os
 from PyQt5.QtWidgets import QDialog, QLabel, QPushButton, QVBoxLayout, QMessageBox
 from config.config_manager import load_version, is_newer_version
 
-# GitHub Token을 환경 변수에서 가져오기
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # 환경 변수로부터 GitHub 토큰을 가져옴
+# GitHub Token을 직접 사용하지 않습니다.
+# GitHub Actions에서 시크릿으로 토큰을 주입하여 실행하는 방식을 사용
 
 class UpdateWindow(QDialog):
     def __init__(self):
@@ -39,8 +38,8 @@ class UpdateWindow(QDialog):
 
     def check_for_update(self):
         try:
+            # GitHub Token 없이도 최신 릴리즈 확인 (비공개 저장소에서는 안될 수 있음)
             headers = {
-                "Authorization": f"token {GITHUB_TOKEN}",
                 "User-Agent": "MyApp"
             }
             response = requests.get("https://api.github.com/repos/durikang/Test/releases/latest", headers=headers)
@@ -64,8 +63,8 @@ class UpdateWindow(QDialog):
                             self.latest_asset_url = asset["browser_download_url"]
 
                 # 최신 버전을 version.json 파일에 업데이트
-                from config.create_release import update_version_json
-                update_version_json(latest_version)  # 최신 버전으로 버전 파일 업데이트
+                from config.create_release import create_release
+                create_release(latest_version)  # 최신 버전으로 버전 파일 업데이트
 
             else:
                 self.status_label.setText("최신 버전입니다.")
@@ -79,9 +78,8 @@ class UpdateWindow(QDialog):
                 QMessageBox.warning(self, "오류", "다운로드할 파일 URL이 없습니다.")
                 return
 
-            # 최신 zip 파일 다운로드
-            headers = {"Authorization": f"token {GITHUB_TOKEN}"}
-            response = requests.get(self.latest_asset_url, headers=headers, stream=True)
+            # 최신 zip 파일 다운로드 (토큰 없이 공개 릴리즈를 다운로드)
+            response = requests.get(self.latest_asset_url, stream=True)
             response.raise_for_status()
 
             # 다운로드한 zip 파일을 임시 위치에 저장

@@ -2,16 +2,17 @@ import requests
 import json
 import os
 
-# GitHub Token 설정 (환경 변수로부터 가져오기)
-GITHUB_TOKEN = os.getenv("DURI_TOKEN")
+# GitHub Token 설정 (GitHub Actions에서는 시크릿으로 주입됨)
+GITHUB_TOKEN = os.getenv("DURI_TOKEN")  # GitHub Actions에서 사용되는 DURI_TOKEN 시크릿 가져오기
+
 username = 'durikang'
 repository = 'Test'
 
-if not GITHUB_TOKEN:
-    print("[ERROR] GitHub 토큰이 설정되지 않았습니다. 환경 변수 'DURI_TOKEN'을 확인하세요.")
-    exit(1)
+def create_release(new_tag):
+    if not GITHUB_TOKEN:
+        print("[ERROR] GitHub 토큰이 설정되지 않았습니다. GitHub Actions 환경에서 실행해야 합니다.")
+        return
 
-def create_release():
     try:
         # 릴리즈 생성하기
         headers = {
@@ -19,9 +20,9 @@ def create_release():
             "User-Agent": "MyApp"
         }
         release_data = {
-            "tag_name": os.getenv("NEW_TAG"),
-            "name": f"Release {os.getenv('NEW_TAG')}",
-            "body": f"This is the release for {os.getenv('NEW_TAG')}",
+            "tag_name": new_tag,
+            "name": f"Release {new_tag}",
+            "body": f"This is the release for {new_tag}",
             "draft": False,
             "prerelease": False
         }
@@ -34,16 +35,8 @@ def create_release():
         data = response.json()
         upload_url = data.get("upload_url")
 
-        # GitHub Actions 환경 변수로 설정 (GITHUB_ENV로 저장)
         if upload_url:
-            github_env_path = os.getenv('GITHUB_ENV')
-            if github_env_path:
-                with open(github_env_path, 'a') as github_env:
-                    github_env.write(f'upload_url={upload_url}\n')
-                print(f"::set-output name=upload_url::{upload_url}")
-            else:
-                # 로컬 환경에서의 출력을 위해 처리
-                print(f"Upload URL: {upload_url}")
+            print(f"Upload URL: {upload_url}")
         else:
             print("업로드 URL을 찾을 수 없습니다.")
 
@@ -55,4 +48,5 @@ def create_release():
         print(f"릴리즈 생성 중 오류가 발생했습니다: {e}")
 
 if __name__ == "__main__":
-    create_release()
+    new_tag = os.getenv("NEW_TAG", "v1.0.0")  # 기본값을 제공하여 로컬 테스트도 가능하게 함
+    create_release(new_tag)
