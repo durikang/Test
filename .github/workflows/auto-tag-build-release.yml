@@ -54,7 +54,7 @@ jobs:
         run: |
           # PyInstaller를 사용해 실행 파일 및 필요한 파일 생성
           pyinstaller main.py --onedir --add-data "config/version.json:config" --distpath dist
-          # dist 폴더를 ZIP 파일로 압축
+          # dist 폴더를 ZIP 파일로 압축, 파일명을 명확하게 지정
           cd dist
           zip -r main_update.zip main
 
