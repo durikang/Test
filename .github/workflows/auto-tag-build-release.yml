@@ -32,7 +32,19 @@ jobs:
       - name: Create new tag
         id: create_tag
         run: |
-          NEW_TAG=$(echo ${{ env.TAG }} | awk -F. '{$NF++; print $0}' OFS=.)
+          IFS='.' read -ra VERSION_PARTS <<< "${{ env.TAG }}"
+          major=${VERSION_PARTS[0]}
+          minor=${VERSION_PARTS[1]}
+          patch=${VERSION_PARTS[2]}
+          
+          if [ $patch -eq 9 ]; then
+            minor=$((minor + 1))
+            patch=0
+          else
+            patch=$((patch + 1))
+          fi
+
+          NEW_TAG="${major}.${minor}.${patch}"
           echo "New tag is: $NEW_TAG"
           echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
           git tag $NEW_TAG
@@ -52,11 +64,10 @@ jobs:
       # 7. 빌드 및 압축 파일 생성 (PyInstaller 사용)
       - name: Build Executable with PyInstaller
         run: |
-          # PyInstaller를 사용해 여러 파일과 폴더를 포함한 실행 파일 및 필요한 파일 생성
-          pyinstaller main.py --onedir --add-data "config/version.json:config" --distpath dist
-          # dist 폴더를 ZIP 파일로 압축
-          cd dist
-          zip -r main_update.zip main/
+          # PyInstaller를 사용해 실행 파일 및 필요한 파일 생성
+          pyinstaller main.py --onedir --add-data "config/version.json;config" --name main
+          # main 폴더를 ZIP 파일로 압축
+          zip -r main_update.zip main
 
       # 8. 릴리즈 생성 (파이썬 스크립트 사용) 및 업로드 URL 저장
       - name: Create Release and Update version.json
@@ -78,6 +89,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.DURI_TOKEN }}
         with:
           upload_url: ${{ env.UPLOAD_URL }}
-          asset_path: dist/main_update.zip  # dist 디렉토리에 생성된 실행 파일의 경로
+          asset_path: main_update.zip  # 현재 디렉토리에 생성된 압축 파일 경로
           asset_name: "my_app_v${{ env.NEW_TAG }}.zip"  # 파일 이름 지정
           asset_content_type: application/zip
