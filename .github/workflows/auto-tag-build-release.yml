@@ -70,8 +70,7 @@ jobs:
           mv dist/main dist/main.exe
           # dist 폴더를 ZIP 파일로 압축
           cd dist
-          zip -r main_update.zip main.exe
-
+          zip -r ../main_update.zip main.exe
 
       # 8. 릴리즈 생성 (파이썬 스크립트 사용) 및 업로드 URL 저장
       - name: Create Release and Update version.json
@@ -93,6 +92,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.DURI_TOKEN }}
         with:
           upload_url: ${{ env.UPLOAD_URL }}
-          asset_path: main_update.zip  # 현재 디렉토리에 생성된 압축 파일 경로
+          asset_path: main_update.zip  # ZIP 파일의 올바른 경로 설정
           asset_name: "my_app_v${{ env.NEW_TAG }}.zip"  # 파일 이름 지정
           asset_content_type: application/zip
