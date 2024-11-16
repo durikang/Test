@@ -54,8 +54,10 @@ jobs:
         run: |
           # PyInstaller를 사용해 실행 파일 생성
           pyinstaller main.py --onefile --distpath dist
+          # 빌드된 실행 파일 이름을 main.exe로 변경 (확장자 명시)
+          mv dist/main dist/main.exe
           # 압축 파일 생성
-          zip dist/main.zip dist/main*
+          zip -j dist/main.zip dist/main.exe
 
       # 8. 릴리즈 생성 (파이썬 스크립트 사용) 및 업로드 URL 저장
       - name: Create Release and Update version.json

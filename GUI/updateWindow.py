@@ -85,6 +85,7 @@ class UpdateWindow(QDialog):
                     os.makedirs(temp_extract_path)
                 zip_ref.extractall(temp_extract_path)
 
+                # 압축 해제된 파일이 예상되는 위치에 있는지 확인
                 extracted_main_file_path = os.path.join(temp_extract_path, "main.exe")
 
                 if not os.path.exists(extracted_main_file_path):
