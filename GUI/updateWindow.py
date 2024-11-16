@@ -88,6 +88,11 @@ class UpdateWindow(QDialog):
                 # 압축 해제된 파일이 예상되는 위치에 있는지 확인
                 extracted_main_file_path = os.path.join(temp_extract_path, "main.exe")
 
+                # dist/main.exe로 압축된 파일을 찾기 위한 수정된 경로
+                if not os.path.exists(extracted_main_file_path):
+                    # 압축 파일 내에 dist 폴더가 있다면 dist/main.exe로 해제되었을 가능성 체크
+                    extracted_main_file_path = os.path.join(temp_extract_path, "dist", "main.exe")
+
                 if not os.path.exists(extracted_main_file_path):
                     QMessageBox.critical(self, "오류", "업데이트 파일(main.exe)을 찾을 수 없습니다. 압축 파일 내 위치를 확인하세요.")
                     return
