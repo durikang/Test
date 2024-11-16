@@ -89,15 +89,15 @@ class UpdateWindow(QDialog):
                 zip_ref.extractall(temp_extract_path)
 
             # 압축 해제된 메인 폴더 위치
-            extracted_main_path = os.path.join(temp_extract_path, "duri")
+            extracted_main_path = os.path.join(temp_extract_path, "main")
             if not os.path.exists(extracted_main_path):
-                QMessageBox.critical(self, "오류", "압축 파일에서 'duri' 폴더를 찾을 수 없습니다.")
+                QMessageBox.critical(self, "오류", "압축 파일에서 'main' 폴더를 찾을 수 없습니다.")
                 return
 
-            # 기존 duri 폴더 내부 파일 교체 (구버전 유지)
-            target_path = os.path.join(os.getcwd(), "duri")
+            # 기존 main 폴더 내부 파일 교체 (구버전 유지)
+            target_path = os.path.join(os.getcwd(), "main")
             if os.path.exists(target_path):
-                # 기존 duri 폴더 내부 파일 삭제 및 교체
+                # 기존 main 폴더 내부 파일 삭제 및 교체
                 for item in os.listdir(extracted_main_path):
                     source_item = os.path.join(extracted_main_path, item)
                     target_item = os.path.join(target_path, item)
@@ -112,14 +112,14 @@ class UpdateWindow(QDialog):
             shutil.rmtree(temp_extract_path)
 
             # 파일이 완전히 사용되지 않는 것을 보장하기 위해 잠시 대기
-            time.sleep(1)
+            time.sleep(2)
 
             # zip 파일 삭제
             os.remove(zip_file_path)
 
-            # 프로그램 재시작 (subprocess 사용)
+            # 프로그램 재시작 (os.startfile 사용)
             program_path = os.path.join(target_path, "main.exe")
-            subprocess.Popen(program_path, shell=True)
+            os.startfile(program_path)
             sys.exit(0)
 
         except Exception as e:

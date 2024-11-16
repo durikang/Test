@@ -70,9 +70,9 @@ jobs:
       - name: Build Executable with PyInstaller
         run: |
           # PyInstaller를 사용해 실행 파일 및 필요한 파일 생성
-          pyinstaller main.py --onedir --add-data "config/version.json;config" --distpath dist --name "duri"
+          pyinstaller main.py --onedir --add-data "config/version.json;config" --distpath dist --name "main"
           # dist 폴더를 ZIP 파일로 압축
-          powershell Compress-Archive -Path dist\duri -DestinationPath main_update.zip
+          powershell Compress-Archive -Path dist\main -DestinationPath main_update.zip
 
       # 8. 릴리즈 생성 (파이썬 스크립트 사용) 및 업로드 URL 저장
       - name: Create Release and Update version.json
