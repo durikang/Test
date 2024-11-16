@@ -22,33 +22,38 @@ jobs:
       # 3. 최신 태그 가져오기
       - name: Get latest tag
         id: get_tag
+        shell: pwsh  # PowerShell 사용
         run: |
           git fetch --tags
-          TAG=$(git describe --tags `git rev-list --tags --max-count=1` || echo "v1.0.0")
-          echo "Latest tag is: $TAG"
-          echo "TAG=$TAG" >> $GITHUB_ENV
+          $latestTag = (git describe --tags $(git rev-list --tags --max-count=1)) -replace "\r",""
+          if (-not $latestTag) {
+            $latestTag = "v1.0.0"
+          }
+          Write-Output "Latest tag is: $latestTag"
+          echo "TAG=$latestTag" >> $env:GITHUB_ENV
 
       # 4. 새 태그 생성
       - name: Create new tag
         id: create_tag
+        shell: pwsh  # PowerShell 사용
         run: |
-          IFS='.' read -ra VERSION_PARTS <<< "${{ env.TAG }}"
-          major=${VERSION_PARTS[0]}
-          minor=${VERSION_PARTS[1]}
-          patch=${VERSION_PARTS[2]}
+          $versionParts = $env:TAG -replace "v", "" -split "\."
+          $major = $versionParts[0]
+          $minor = $versionParts[1]
+          $patch = $versionParts[2]
           
-          if [ $patch -eq 9 ]; then
-            minor=$((minor + 1))
-            patch=0
-          else
-            patch=$((patch + 1))
-          fi
+          if ($patch -eq 9) {
+            $minor = [int]$minor + 1
+            $patch = 0
+          } else {
+            $patch = [int]$patch + 1
+          }
 
-          NEW_TAG="${major}.${minor}.${patch}"
-          echo "New tag is: $NEW_TAG"
-          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
-          git tag $NEW_TAG
-          git push origin $NEW_TAG
+          $newTag = "v$major.$minor.$patch"
+          Write-Output "New tag is: $newTag"
+          echo "NEW_TAG=$newTag" >> $env:GITHUB_ENV
+          git tag $newTag
+          git push origin $newTag
 
       # 5. Python 환경 설정
       - name: Set up Python
@@ -67,10 +72,9 @@ jobs:
           # PyInstaller를 사용해 실행 파일 및 필요한 파일 생성
           pyinstaller main.py --onedir --add-data "config/version.json;config" --distpath dist
           # dist 폴더 내부에 있는 빌드된 실행 파일의 이름을 명확히 지정
-          mv dist/main/main.exe dist/main/main.exe
+          mv dist\main\main.exe dist\main\main.exe
           # dist 폴더를 ZIP 파일로 압축
-          cd dist
-          powershell Compress-Archive -Path main -DestinationPath ../main_update.zip
+          powershell Compress-Archive -Path dist\main -DestinationPath main_update.zip
 
       # 8. 릴리즈 생성 (파이썬 스크립트 사용) 및 업로드 URL 저장
       - name: Create Release and Update version.json
@@ -78,12 +82,12 @@ jobs:
         env:
           DURI_TOKEN: ${{ secrets.DURI_TOKEN }}  # GitHub Actions에 저장된 DURI_TOKEN 사용
           NEW_TAG: ${{ env.NEW_TAG }}
+        shell: pwsh
         run: |
           python config/create_release.py > release_output.txt
-          cat release_output.txt
-          # 릴리즈 생성 후 결과를 GitHub Actions에 반영
-          upload_url=$(cat release_output.txt | findstr "Upload URL" | awk '{print $3}')
-          echo "UPLOAD_URL=$upload_url" >> $GITHUB_ENV
+          Get-Content release_output.txt | Write-Output
+          $uploadUrl = Select-String -Path release_output.txt -Pattern "Upload URL:" | ForEach-Object { $_.Line.Split(' ')[-1] }
+          echo "UPLOAD_URL=$uploadUrl" >> $env:GITHUB_ENV
 
       # 9. 빌드된 파일을 릴리즈에 업로드
       - name: Upload Executable to Release
