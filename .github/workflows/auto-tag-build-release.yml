@@ -65,9 +65,12 @@ jobs:
       - name: Build Executable with PyInstaller
         run: |
           # PyInstaller를 사용해 실행 파일 및 필요한 파일 생성
-          pyinstaller main.py --onedir --add-data "config/version.json:config" --name main
-          # dist 폴더 내의 main 폴더를 ZIP 파일로 압축
-          zip -r main_update.zip dist/main
+          pyinstaller main.py --onedir --add-data="config/version.json:config" --distpath dist
+          # 빌드된 실행 파일 이름을 main.exe로 변경 (확장자 명시)
+          mv dist/main dist/main.exe
+          # dist 폴더를 ZIP 파일로 압축
+          cd dist
+          zip -r main_update.zip main.exe
 
 
       # 8. 릴리즈 생성 (파이썬 스크립트 사용) 및 업로드 URL 저장

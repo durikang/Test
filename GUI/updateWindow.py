@@ -8,6 +8,7 @@ import os
 from PyQt5.QtWidgets import QDialog, QLabel, QPushButton, QVBoxLayout, QMessageBox
 from config.config_manager import load_version, is_newer_version
 
+
 class UpdateWindow(QDialog):
     def __init__(self):
         super().__init__()
@@ -88,10 +89,16 @@ class UpdateWindow(QDialog):
 
                 # 기존 폴더 교체
                 target_path = os.path.join(os.getcwd(), "main")
+                extracted_main_path = os.path.join(temp_extract_path, "main")
+
+                if not os.path.exists(extracted_main_path):
+                    QMessageBox.critical(self, "오류", "압축 파일에서 'main' 폴더를 찾을 수 없습니다.")
+                    return
+
                 if os.path.exists(target_path):
                     shutil.rmtree(target_path)
 
-                shutil.move(os.path.join(temp_extract_path, "main"), target_path)
+                shutil.move(extracted_main_path, target_path)
 
             # 배치 파일 생성 및 실행 후 프로그램 재시작
             bat_file_path = os.path.join(os.getcwd(), "update.bat")
