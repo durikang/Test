@@ -117,12 +117,11 @@ class UpdateWindow(QDialog):
             # zip 파일 삭제
             os.remove(zip_file_path)
 
-            # 프로그램 재시작 (os.execv 사용)
-            python_executable = sys.executable
+            # 프로그램 재시작 (subprocess 사용)
             program_path = os.path.join(target_path, "main.exe")
-            os.execv(python_executable, [python_executable, program_path])
+            subprocess.Popen(program_path, shell=True)
+            sys.exit(0)
 
         except Exception as e:
             traceback.print_exc()
             QMessageBox.critical(self, "오류", f"업데이트 중 오류가 발생했습니다: {e}")
-
