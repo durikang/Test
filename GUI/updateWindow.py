@@ -6,15 +6,23 @@ import traceback
 import shutil
 import os
 import time
-from PyQt5.QtWidgets import QDialog, QLabel, QPushButton, QVBoxLayout, QMessageBox
+import json
+from PyQt5.QtWidgets import QDialog, QLabel, QPushButton, QVBoxLayout, QMessageBox, QApplication
 from config.config_manager import load_version, is_newer_version
+import logging
 
+# 로그 설정
+logging.basicConfig(filename='update_debug.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class UpdateWindow(QDialog):
     def __init__(self):
         super().__init__()
         self.current_version = load_version()
         self.latest_asset_url = None
+        self.latest_version_data = None
+        self.target_path = os.getcwd()
+        self.program_path = os.path.join(self.target_path, "main.exe")
+        self.temp_extract_path = os.path.join(self.target_path, "temp_update")
 
         self.setWindowTitle(f"업데이트 확인 - {self.current_version}")
         self.setGeometry(150, 150, 300, 200)
@@ -27,7 +35,7 @@ class UpdateWindow(QDialog):
 
         self.update_button = QPushButton("업데이트 하기")
         self.update_button.setEnabled(False)
-        self.update_button.clicked.connect(self.perform_update)
+        self.update_button.clicked.connect(self.prepare_for_update)
 
         layout = QVBoxLayout()
         layout.addWidget(self.version_label)
@@ -38,12 +46,15 @@ class UpdateWindow(QDialog):
 
     def check_for_update(self):
         try:
+            logging.debug("Checking for updates.")
             headers = {"User-Agent": "MyApp"}
             response = requests.get("https://api.github.com/repos/durikang/Test/releases/latest", headers=headers)
             response.raise_for_status()
 
             data = response.json()
+            self.latest_version_data = data
             latest_version = data.get("tag_name", "N/A")
+            logging.debug(f"Latest version fetched: {latest_version}")
 
             if latest_version == "N/A":
                 self.status_label.setText("최신 버전 정보를 불러올 수 없습니다.")
@@ -57,21 +68,24 @@ class UpdateWindow(QDialog):
                     for asset in data["assets"]:
                         if asset["name"].endswith(".zip"):
                             self.latest_asset_url = asset["browser_download_url"]
+                            logging.debug(f"Latest asset URL: {self.latest_asset_url}")
 
             else:
                 self.status_label.setText("최신 버전입니다.")
         except Exception as e:
-            traceback.print_exc()
+            logging.error("Error during update check.")
+            logging.error(traceback.format_exc())
             QMessageBox.warning(self, "오류", f"업데이트 확인 중 오류가 발생했습니다: {e}")
 
-    def perform_update(self):
+    def prepare_for_update(self):
         try:
             if not self.latest_asset_url:
                 QMessageBox.warning(self, "오류", "다운로드할 파일 URL이 없습니다.")
                 return
 
             # 최신 zip 파일 다운로드
-            zip_file_path = os.path.join(os.getcwd(), "latest_release.zip")
+            zip_file_path = os.path.join(self.target_path, "latest_release.zip")
+            logging.debug(f"Downloading latest release to: {zip_file_path}")
             response = requests.get(self.latest_asset_url, stream=True)
             response.raise_for_status()
 
@@ -79,49 +93,78 @@ class UpdateWindow(QDialog):
                 for chunk in response.iter_content(chunk_size=8192):
                     f.write(chunk)
 
-            QMessageBox.information(self, "업데이트", "업데이트가 성공적으로 다운로드되었습니다! 압축을 해제하고 프로그램을 재시작합니다.")
+            logging.debug("Download completed.")
+            QMessageBox.information(self, "업데이트", "업데이트가 성공적으로 다운로드되었습니다! 프로그램을 종료하고 재시작합니다.")
 
-            # 압축 해제 및 기존 폴더 교체
+            # 압축 해제
+            logging.debug(f"Extracting zip to: {self.temp_extract_path}")
             with zipfile.ZipFile(zip_file_path, "r") as zip_ref:
-                temp_extract_path = os.path.join(os.getcwd(), "temp_update")
-                if not os.path.exists(temp_extract_path):
-                    os.makedirs(temp_extract_path)
-                zip_ref.extractall(temp_extract_path)
+                if not os.path.exists(self.temp_extract_path):
+                    os.makedirs(self.temp_extract_path)
+                zip_ref.extractall(self.temp_extract_path)
+            logging.debug("Extraction completed.")
 
-            # 압축 해제된 메인 폴더 위치
-            extracted_main_path = os.path.join(temp_extract_path, "main")
-            if not os.path.exists(extracted_main_path):
-                QMessageBox.critical(self, "오류", "압축 파일에서 'main' 폴더를 찾을 수 없습니다.")
-                return
+            # 프로그램 종료를 위한 중재자 배치 파일 생성
+            batch_script = os.path.join(self.target_path, "update_script.bat")
+            logging.debug(f"Creating batch script at: {batch_script}")
 
-            # 기존 main 폴더 내부 파일 교체 (구버전 유지)
-            target_path = os.path.join(os.getcwd(), "main")
-            if os.path.exists(target_path):
-                # 기존 main 폴더 내부 파일 삭제 및 교체
-                for item in os.listdir(extracted_main_path):
-                    source_item = os.path.join(extracted_main_path, item)
-                    target_item = os.path.join(target_path, item)
-                    if os.path.exists(target_item):
-                        if os.path.isdir(target_item):
-                            shutil.rmtree(target_item)
-                        else:
-                            os.remove(target_item)
-                    shutil.move(source_item, target_path)
+            with open(batch_script, "w") as bat_file:
+                bat_file.write(f"""
+                @echo off
+                timeout /t 2 /nobreak >nul
 
-            # 임시 압축 해제 폴더 삭제
-            shutil.rmtree(temp_extract_path)
+                REM 기존 main.exe 파일을 main_old.exe로 백업
+                rename "{self.program_path}" "main_old.exe"
+                if exist "main_old.exe" (
+                    echo main.exe backed up as main_old.exe
+                ) else (
+                    echo Failed to backup main.exe
+                )
 
-            # 파일이 완전히 사용되지 않는 것을 보장하기 위해 잠시 대기
-            time.sleep(2)
+                REM 압축 해제된 파일을 메인 프로그램 폴더로 복사
+                xcopy "{self.temp_extract_path}\\*" "{self.target_path}" /s /e /y
+                if %errorlevel%==0 (
+                    echo Files copied successfully
+                ) else (
+                    echo Error copying files
+                )
 
-            # zip 파일 삭제
-            os.remove(zip_file_path)
+                REM main_old.exe 삭제
+                del "main_old.exe"
+                if not exist "main_old.exe" (
+                    echo main_old.exe deleted successfully
+                ) else (
+                    echo Failed to delete main_old.exe
+                )
 
-            # 프로그램 재시작 (os.startfile 사용)
-            program_path = os.path.join(target_path, "main.exe")
-            os.startfile(program_path)
+                REM 임시 폴더와 zip 파일 삭제
+                rmdir /s /q "{self.temp_extract_path}"
+                del "{zip_file_path}"
+
+                REM 업데이트된 main.exe 실행
+                start "" "{self.program_path}"
+                del "%~f0"
+                """)
+
+            logging.debug(f"Executing batch script: {batch_script}")
+            subprocess.Popen(batch_script, shell=True)
+
+            QApplication.quit()
             sys.exit(0)
 
         except Exception as e:
-            traceback.print_exc()
+            logging.error("Error during update process.")
+            logging.error(traceback.format_exc())
             QMessageBox.critical(self, "오류", f"업데이트 중 오류가 발생했습니다: {e}")
+
+    @staticmethod
+    def update_version_json(version_data):
+        try:
+            version_json_path = os.path.join(os.getcwd(), "_internal", "config", "version.json")
+            logging.debug(f"Updating version.json at: {version_json_path}")
+            with open(version_json_path, "w") as version_file:
+                json.dump({"version": version_data.get("tag_name", "v1.0.0")}, version_file, indent=4)
+            logging.debug("Version.json updated successfully.")
+        except Exception as e:
+            logging.error("Error updating version.json")
+            logging.error(traceback.format_exc())

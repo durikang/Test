@@ -9,3 +9,17 @@ project/
     └── create_release.py     # 버전 정보 파일
     └── version.json     # 버전 정보 파일
 └── .github/workflows/auto-tag-build-release.yml
+
+
+
+
+
+
+
+dist/
+│
+├── main/
+│   ├── main.exe               # 실행 파일
+│   └── _internal
+│   	└── config
+│   		└── version.json

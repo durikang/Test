@@ -1,0 +1,5 @@
+2024-11-17 09:56:19,845 - DEBUG - Checking for updates.
+2024-11-17 09:56:19,849 - DEBUG - Starting new HTTPS connection (1): api.github.com:443
+2024-11-17 09:56:20,150 - DEBUG - https://api.github.com:443 "GET /repos/durikang/Test/releases/latest HTTP/11" 200 753
+2024-11-17 09:56:20,151 - DEBUG - Latest version fetched: v1.0.25
+2024-11-17 09:56:20,152 - DEBUG - Latest asset URL: https://github.com/durikang/Test/releases/download/v1.0.25/my_app_vv1.0.25.zip
